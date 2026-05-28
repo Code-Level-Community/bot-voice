@@ -89,6 +89,14 @@ async function connectAndPlay(client: Client, config: RadioInstance) {
       setTimeout(() => connectAndPlay(client, config), 5000);
     });
 
+    connection.on('stateChange', (oldState, newState) => {
+      console.log(`[${config.name}] Conexão: ${oldState.status} -> ${newState.status}`);
+    });
+
+    player.on('stateChange', (oldState, newState) => {
+      console.log(`[${config.name}] Player: ${oldState.status} -> ${newState.status}`);
+    });
+
   } catch (error) {
     console.error(`[${config.name}] Falha crítica na conexão de voz:`, error);
     setTimeout(() => connectAndPlay(client, config), 15000);
