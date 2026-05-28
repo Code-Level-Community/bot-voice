@@ -3,12 +3,10 @@ FROM node:22-slim AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-
-# Impede que youtube-dl-exec tente baixar o binário durante o install
 ENV YOUTUBE_DL_SKIP_DOWNLOAD=true
 
-RUN npm ci
+COPY package*.json ./
+RUN npm install
 
 COPY . .
 RUN npm run build && npm prune --production
@@ -17,10 +15,10 @@ RUN npm run build && npm prune --production
 # Estágio Final
 FROM node:22-slim
 
+# Só precisa do python3 + yt-dlp (ffmpeg vem do ffmpeg-static no node_modules)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
-    ffmpeg \
     && pip3 install -q yt-dlp --break-system-packages \
     && rm -rf /var/lib/apt/lists/*
 
@@ -28,15 +26,16 @@ RUN useradd -r -s /bin/false appuser
 
 WORKDIR /app
 
-COPY --from=builder /app/dist       ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
+COPY --from=builder /app/dist          ./dist
+COPY --from=builder /app/node_modules  ./node_modules
+COPY --from=builder /app/package.json  ./
 
 RUN chown -R appuser:appuser /app
 USER appuser
 
 ENV YOUTUBE_DL_SKIP_DOWNLOAD=true \
-    FFMPEG_PATH=ffmpeg \
+    # ffmpeg-static expõe o binário dentro do próprio node_modules
+    FFMPEG_PATH=/app/node_modules/ffmpeg-static/ffmpeg \
     YTDLP_PATH=yt-dlp \
     NODE_ENV=production
 
