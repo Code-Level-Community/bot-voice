@@ -1,3 +1,7 @@
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error.message);
+});
+
 import {
     AudioPlayerStatus,
     createAudioPlayer,
@@ -109,6 +113,11 @@ async function connectAndPlay(client: Client, config: RadioInstance) {
 
     connection.on(VoiceConnectionStatus.Destroyed, () => {
       console.log(`[${config.name}] ❌ Conexão destruída!`);
+    });
+
+    connection.on('error', (error) => {
+      console.error(`[${config.name}] Erro na conexão de voz: ${error.message}`);
+      setTimeout(() => connectAndPlay(client, config), 5000);
     });
 
     player.on('stateChange', (oldState, newState) => {
