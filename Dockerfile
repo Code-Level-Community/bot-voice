@@ -16,8 +16,7 @@ FROM node:22-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip xz-utils curl unzip \
     && pip3 install -q yt-dlp --break-system-packages \
-    && curl -fsSL https://deno.land/install.sh | sh \
-    && ln -s /root/.deno/bin/deno /usr/local/bin/deno \
+    && curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh \
     && curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz \
        | tar -xJ --strip-components=1 -C /usr/local/bin --wildcards '*/ffmpeg' \
     && apt-get purge -y xz-utils curl unzip \
