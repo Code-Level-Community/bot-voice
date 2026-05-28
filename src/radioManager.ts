@@ -1,6 +1,7 @@
 import {
     AudioPlayerStatus,
     createAudioPlayer,
+    entersState,
     joinVoiceChannel,
     NoSubscriberBehavior,
     VoiceConnectionStatus
@@ -57,6 +58,15 @@ async function connectAndPlay(client: Client, config: RadioInstance) {
       selfMute: false,
       group: client.user?.id
     });
+
+    try {
+      await entersState(connection, VoiceConnectionStatus.Ready, 30_000);
+      console.log(`[${config.name}] ✅ Conexão de voz pronta!`);
+    } catch {
+      console.error(`[${config.name}] ❌ Timeout ao conectar ao canal de voz.`);
+      connection.destroy();
+      return;
+    }
 
     const player = createAudioPlayer({
       behaviors: {
