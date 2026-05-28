@@ -39,4 +39,4 @@ ENV YOUTUBE_DL_SKIP_DOWNLOAD=true \
     YTDLP_PATH=yt-dlp \
     NODE_ENV=production
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "--import", "tsx/esm", "src/index.ts"]
