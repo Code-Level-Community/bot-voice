@@ -37,7 +37,12 @@ export async function startRadio(config: RadioInstance) {
   }
 }
 
+const reconnecting = new Set<string>();
+
 async function connectAndPlay(client: Client, config: RadioInstance) {
+  if (reconnecting.has(config.name)) return;
+  reconnecting.add(config.name);
+
   try {
     const guild = client.guilds.cache.get(config.guildId);
     
@@ -68,9 +73,12 @@ async function connectAndPlay(client: Client, config: RadioInstance) {
       console.log(`[${config.name}] ✅ Conexão de voz pronta!`);
     } catch {
       console.error(`[${config.name}] ❌ Timeout ao conectar ao canal de voz.`);
-      connection.destroy();
+      try { connection.destroy(); } catch {}
+      reconnecting.delete(config.name);
       return;
     }
+
+    reconnecting.delete(config.name);
 
     const player = createAudioPlayer({
       behaviors: {
@@ -100,6 +108,7 @@ async function connectAndPlay(client: Client, config: RadioInstance) {
     // Monitoramento da conexão física do canal
     connection.on(VoiceConnectionStatus.Disconnected, async () => {
       console.warn(`[${config.name}] Perdeu a conexão com a sala. Reconectando...`);
+      reconnecting.delete(config.name);
       setTimeout(() => connectAndPlay(client, config), 5000);
     });
 
@@ -117,6 +126,7 @@ async function connectAndPlay(client: Client, config: RadioInstance) {
 
     connection.on('error', (error) => {
       console.error(`[${config.name}] Erro na conexão de voz: ${error.message}`);
+      reconnecting.delete(config.name);
       setTimeout(() => connectAndPlay(client, config), 5000);
     });
 
@@ -126,6 +136,7 @@ async function connectAndPlay(client: Client, config: RadioInstance) {
 
   } catch (error) {
     console.error(`[${config.name}] Falha crítica na conexão de voz:`, error);
+    reconnecting.delete(config.name);
     setTimeout(() => connectAndPlay(client, config), 15000);
   }
 }
