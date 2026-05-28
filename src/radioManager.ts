@@ -89,8 +89,16 @@ async function connectAndPlay(client: Client, config: RadioInstance) {
       setTimeout(() => connectAndPlay(client, config), 5000);
     });
 
-    connection.on('stateChange', (oldState, newState) => {
-      console.log(`[${config.name}] Conexão: ${oldState.status} -> ${newState.status}`);
+    connection.on(VoiceConnectionStatus.Ready, () => {
+      console.log(`[${config.name}] ✅ Conexão de voz pronta!`);
+    });
+
+    connection.on(VoiceConnectionStatus.Connecting, () => {
+      console.log(`[${config.name}] 🔄 Conectando ao canal de voz...`);
+    });
+
+    connection.on(VoiceConnectionStatus.Destroyed, () => {
+      console.log(`[${config.name}] ❌ Conexão destruída!`);
     });
 
     player.on('stateChange', (oldState, newState) => {
