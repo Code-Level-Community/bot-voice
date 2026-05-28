@@ -22,7 +22,7 @@ export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance) {
 
       const cookiesPath = process.env.COOKIES_PATH || './cookies.txt';
 
-      let command = `"${YTDLP_PATH}" "${config.streamUrl}" --format bestaudio --get-url --no-warnings --no-check-certificates`;
+      let command = `"${YTDLP_PATH}" "${config.streamUrl}" --format bestaudio/best --get-url --no-warnings --no-check-certificates --remote-components ejs:github`;
       
       if (isPlaylist) {
         command += ` --playlist-items ${currentTrackIndex}`;
