@@ -1,4 +1,4 @@
-import { AudioPlayer, AudioPlayerStatus, createAudioResource } from '@discordjs/voice';
+import { AudioPlayer, AudioPlayerStatus, StreamType, createAudioResource } from '@discordjs/voice';
 import { exec, spawn } from 'child_process';
 import ffmpegStatic from 'ffmpeg-static';
 import fs from 'fs';
@@ -50,8 +50,6 @@ export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance) {
         '-reconnect', '1',
         '-reconnect_streamed', '1',
         '-reconnect_delay_max', '5',
-        '-analyzeduration', '0',
-        '-probesize', '32',
         '-i', streamUrlReal,
         '-f', 's16le',
         '-ar', '48000',
@@ -66,12 +64,11 @@ export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance) {
       });
 
       const resource = createAudioResource(ffmpegProcess.stdout, {
-        inputType: 'raw' as any
+        inputType: StreamType.Raw
       });
 
       player.play(resource);
 
-      // Listener descartável para o estado inicial de reprodução
       player.once(AudioPlayerStatus.Playing, () => {
         console.log(`[${config.name}] 🔊 Transmitindo com sucesso! ${isPlaylist ? `(Música #${currentTrackIndex})` : '(Live 24/7)'}`);
       });
@@ -87,10 +84,9 @@ export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance) {
         currentTrackIndex++;
       }
       
-      setTimeout(playStream, 10000);
+      setTimeout(playStream, 1000);
     }
   };
 
-  // Retorna a função de controle para ser disparada quando o canal estiver pronto
   return { playStream };
 }
