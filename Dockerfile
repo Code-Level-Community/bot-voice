@@ -6,7 +6,7 @@ WORKDIR /app
 ENV YOUTUBE_DL_SKIP_DOWNLOAD=true
 
 COPY package*.json ./
-RUN npm install
+RUN npm install --ignore-scripts
 
 COPY . .
 RUN npm run build && npm prune --production
