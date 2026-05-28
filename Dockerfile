@@ -31,7 +31,9 @@ COPY --from=builder /app/dist         ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /home/appuser/.cache/yt-dlp && \
+    chown -R appuser:appuser /home/appuser
+
 USER appuser
 
 ENV YOUTUBE_DL_SKIP_DOWNLOAD=true \
