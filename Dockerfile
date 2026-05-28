@@ -10,22 +10,25 @@ RUN npm install --ignore-scripts
 COPY . .
 RUN npm run build && npm prune --production
 
+
 FROM node:22-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg \
-    python3 \
-    python3-pip \
+    python3 python3-pip xz-utils curl \
     && pip3 install -q yt-dlp --break-system-packages \
+    && curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz \
+       | tar -xJ --strip-components=1 -C /usr/local/bin --wildcards '*/ffmpeg' \
+    && apt-get purge -y xz-utils curl \
+    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -r -s /bin/false appuser
 
 WORKDIR /app
 
-COPY --from=builder /app/dist          ./dist
-COPY --from=builder /app/node_modules  ./node_modules
-COPY --from=builder /app/package.json  ./
+COPY --from=builder /app/dist         ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
 
 RUN chown -R appuser:appuser /app
 USER appuser
