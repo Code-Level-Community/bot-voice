@@ -2,13 +2,12 @@ import { AudioPlayer, AudioPlayerStatus, createAudioResource } from '@discordjs/
 import { exec, spawn } from 'child_process';
 import ffmpegStatic from 'ffmpeg-static';
 import fs from 'fs';
-import path from 'path';
 import { promisify } from 'util';
 import { type RadioInstance } from './config';
 
 const execAsync = promisify(exec);
 
-const YTDLP_PATH = process.env.YTDLP_PATH || path.join(process.cwd(), 'node_modules', 'youtube-dl-exec', 'bin', 'yt-dlp.exe');
+const YTDLP_PATH = process.env.YTDLP_PATH || 'yt-dlp';
 const FFMPEG_PATH = process.env.FFMPEG_PATH || ffmpegStatic || 'ffmpeg';
 
 export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance) {
