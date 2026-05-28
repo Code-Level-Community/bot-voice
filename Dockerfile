@@ -1,26 +1,36 @@
+FROM node:20-slim AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build && npm prune --production
+
+
 FROM node:20-slim
 
-# Instala as dependências de sistema: python3 (pro yt-dlp) e o ffmpeg do Linux
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
+# Usuário não-root para segurança
+RUN useradd -r -s /bin/false appuser
+
 WORKDIR /app
 
-# Copia os arquivos de pacotes primeiro para aproveitar o cache de camadas do Docker
-COPY package*.json ./
-RUN npm install
+# Copia apenas o necessário do estágio de build
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
 
-# Copia o restante do código fonte
-COPY . .
+RUN chown -R appuser:appuser /app
+USER appuser
 
-# Compila o TypeScript para JavaScript (gera a pasta dist/)
-RUN npm run build
+ENV FFMPEG_PATH=ffmpeg \
+    YTDLP_PATH=yt-dlp \
+    NODE_ENV=production
 
-# Define as variáveis de ambiente para o código usar os comandos globais do Linux
-ENV FFMPEG_PATH=ffmpeg
-ENV YTDLP_PATH=yt-dlp
-
-# Comando de inicialização nativo e direto
 CMD ["node", "dist/index.js"]
