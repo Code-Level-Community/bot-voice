@@ -1,4 +1,3 @@
-# Estágio de Build
 FROM node:22-slim AS builder
 
 WORKDIR /app
@@ -11,11 +10,10 @@ RUN npm install --ignore-scripts
 COPY . .
 RUN npm run build && npm prune --production
 
-
-# Estágio Final
 FROM node:22-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
     python3 \
     python3-pip \
     && pip3 install -q yt-dlp --break-system-packages \
@@ -33,7 +31,7 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 ENV YOUTUBE_DL_SKIP_DOWNLOAD=true \
-    FFMPEG_PATH=/app/node_modules/ffmpeg-static/ffmpeg \
+    FFMPEG_PATH=ffmpeg \
     YTDLP_PATH=yt-dlp \
     NODE_ENV=production
 
