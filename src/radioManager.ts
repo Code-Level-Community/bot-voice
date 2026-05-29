@@ -35,24 +35,25 @@ export async function startRadio(config: RadioInstance) {
     const member = newState.member;
     if (!member || member.user.bot) return;
 
-    const joinedRadioChannel =
-      newState.channelId === config.voiceChannelId &&
-      oldState.channelId !== config.voiceChannelId;
+    const radioCategoryId = newState.guild.channels.cache.get(config.voiceChannelId)?.parentId ?? null;
 
-    const leftRadioChannel =
-      oldState.channelId === config.voiceChannelId &&
-      newState.channelId !== config.voiceChannelId;
+    const isInRadioScope = (channelId: string | null): boolean => {
+      if (!channelId) return false;
+      if (radioCategoryId) {
+        return newState.guild.channels.cache.get(channelId)?.parentId === radioCategoryId;
+      }
+      return channelId === config.voiceChannelId;
+    };
 
-    const unmutedInsideChannel =
-      newState.channelId === config.voiceChannelId &&
-      oldState.serverMute === true &&
-      newState.serverMute === false;
+    const joinedScope = isInRadioScope(newState.channelId) && !isInRadioScope(oldState.channelId);
+    const leftScope = !isInRadioScope(newState.channelId) && isInRadioScope(oldState.channelId);
+    const unmutedInScope = isInRadioScope(newState.channelId) && oldState.serverMute === true && newState.serverMute === false;
 
-    if (joinedRadioChannel || unmutedInsideChannel) {
+    if (joinedScope || unmutedInScope) {
       await member.voice.setMute(true).catch((err: any) =>
         console.error(`[${config.name}] Erro ao mutar ${member.user.tag}:`, err.message)
       );
-    } else if (leftRadioChannel && newState.channelId) {
+    } else if (leftScope && newState.channelId) {
       await member.voice.setMute(false).catch((err: any) =>
         console.error(`[${config.name}] Erro ao desmutar ${member.user.tag}:`, err.message)
       );
