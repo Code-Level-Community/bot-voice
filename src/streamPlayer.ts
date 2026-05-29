@@ -27,7 +27,6 @@ async function fetchTrackMetadata(streamUrl: string, trackIndex: number, isPlayl
     '--dump-json',
     '--skip-download',
     '--no-warnings',
-    '--no-check-certificates',
     '--geo-bypass',
   ];
   if (isPlaylist) {
@@ -113,7 +112,6 @@ export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance, cl
         config.streamUrl,
         '--format', 'bestaudio/best',
         '--no-warnings',
-        '--no-check-certificates',
         '--geo-bypass',
         '-o', '-',
       ];
@@ -131,7 +129,7 @@ export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance, cl
 
       let ytdlpStderr = '';
       ytdlpProcess.stderr!.on('data', (data: Buffer) => {
-        ytdlpStderr += data.toString();
+        if (ytdlpStderr.length < 10_000) ytdlpStderr += data.toString();
       });
 
       ytdlpProcess.on('close', (code: number | null) => {
