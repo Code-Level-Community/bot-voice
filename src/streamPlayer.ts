@@ -9,6 +9,7 @@ const FFMPEG_PATH = process.env.FFMPEG_PATH || ffmpegStatic || 'ffmpeg';
 
 export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance) {
   let currentTrackIndex = 1;
+  let consecutiveErrors = 0;
 
   const playStream = async () => {
     try {
@@ -43,9 +44,19 @@ export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance) {
       });
 
       ytdlpProcess.on('close', (code: number | null) => {
-        if (code !== 0 && ytdlpStderr) {
-          const lastLine = ytdlpStderr.trim().split('\n').pop() ?? '';
-          console.error(`[${config.name}] YT-DLP saiu com código ${code}: ${lastLine}`);
+        if (code !== 0) {
+          consecutiveErrors++;
+          if (ytdlpStderr) {
+            const lastLine = ytdlpStderr.trim().split('\n').pop() ?? '';
+            console.error(`[${config.name}] YT-DLP saiu com código ${code}: ${lastLine}`);
+          }
+          if (isPlaylist && consecutiveErrors >= 5) {
+            console.log(`[${config.name}] Fim da playlist detectado. Reiniciando do início...`);
+            currentTrackIndex = 1;
+            consecutiveErrors = 0;
+          }
+        } else {
+          consecutiveErrors = 0;
         }
       });
 
