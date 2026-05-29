@@ -117,7 +117,7 @@ async function connectAndPlay(client: Client, config: RadioInstance) {
     connection.subscribe(player);
 
     // Inicializa o player injetando o player do Voice
-    const { playStream } = setupStreamPlayer(player, config);
+    const { playStream } = setupStreamPlayer(player, config, client);
     await playStream();
 
     // Eventos contínuos do player de áudio

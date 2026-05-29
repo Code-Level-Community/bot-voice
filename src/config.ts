@@ -8,6 +8,7 @@ export interface RadioInstance {
   voiceChannelId: string;
   guildId: string;
   streamUrl: string;
+  color: number;
 }
 
 const commonGuildId = process.env.GUILD_ID || '';
@@ -18,21 +19,24 @@ export const radios: RadioInstance[] = [
     token: process.env.RADIO_FORRO_TOKEN || '',
     guildId: commonGuildId,
     voiceChannelId: process.env.RADIO_FORRO_VOICE_ID || '',
-    streamUrl: process.env.RADIO_FORRO_URL || ''
+    streamUrl: process.env.RADIO_FORRO_URL || '',
+    color: 0xF5A623,
   },
   {
     name: "Rock",
     token: process.env.RADIO_ROCK_TOKEN || '',
     guildId: commonGuildId,
     voiceChannelId: process.env.RADIO_ROCK_VOICE_ID || '',
-    streamUrl: process.env.RADIO_ROCK_URL || ''
+    streamUrl: process.env.RADIO_ROCK_URL || '',
+    color: 0xE53935,
   },
   {
     name: "Lofi",
     token: process.env.RADIO_LOFI_TOKEN || '',
     guildId: commonGuildId,
     voiceChannelId: process.env.RADIO_LOFI_VOICE_ID || '',
-    streamUrl: process.env.RADIO_LOFI_URL || ''
+    streamUrl: process.env.RADIO_LOFI_URL || '',
+    color: 0x7B68EE,
   }
 ];
 
