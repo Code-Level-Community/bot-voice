@@ -51,7 +51,7 @@ export async function startRadio(config: RadioInstance) {
       await member.voice.setMute(true).catch((err: any) =>
         console.error(`[${config.name}] Erro ao mutar ${member.user.tag}:`, err.message)
       );
-    } else if (leftRadioChannel) {
+    } else if (leftRadioChannel && newState.channelId) {
       await member.voice.setMute(false).catch((err: any) =>
         console.error(`[${config.name}] Erro ao desmutar ${member.user.tag}:`, err.message)
       );
