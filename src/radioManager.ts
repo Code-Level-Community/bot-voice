@@ -136,6 +136,7 @@ async function connectAndPlay(client: Client, config: RadioInstance) {
     // Monitoramento da conexão física do canal
     connection.on(VoiceConnectionStatus.Disconnected, async () => {
       console.warn(`[${config.name}] Perdeu a conexão com a sala. Reconectando...`);
+      player.stop(true);
       reconnecting.delete(config.name);
       setTimeout(() => connectAndPlay(client, config), 5000);
     });
@@ -154,6 +155,7 @@ async function connectAndPlay(client: Client, config: RadioInstance) {
 
     connection.on('error', (error) => {
       console.error(`[${config.name}] Erro na conexão de voz: ${error.message}`);
+      player.stop(true);
       reconnecting.delete(config.name);
       setTimeout(() => connectAndPlay(client, config), 5000);
     });
