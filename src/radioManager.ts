@@ -30,6 +30,34 @@ export async function startRadio(config: RadioInstance) {
     }, 3000);
   });
 
+  client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+    const member = newState.member;
+    if (!member || member.user.bot) return;
+
+    const joinedRadioChannel =
+      newState.channelId === config.voiceChannelId &&
+      oldState.channelId !== config.voiceChannelId;
+
+    const leftRadioChannel =
+      oldState.channelId === config.voiceChannelId &&
+      newState.channelId !== config.voiceChannelId;
+
+    const unmutedInsideChannel =
+      newState.channelId === config.voiceChannelId &&
+      oldState.serverMute === true &&
+      newState.serverMute === false;
+
+    if (joinedRadioChannel || unmutedInsideChannel) {
+      await member.voice.setMute(true).catch((err: any) =>
+        console.error(`[${config.name}] Erro ao mutar ${member.user.tag}:`, err.message)
+      );
+    } else if (leftRadioChannel) {
+      await member.voice.setMute(false).catch((err: any) =>
+        console.error(`[${config.name}] Erro ao desmutar ${member.user.tag}:`, err.message)
+      );
+    }
+  });
+
   try {
     await client.login(config.token);
   } catch (error) {
