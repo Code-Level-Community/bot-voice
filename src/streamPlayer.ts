@@ -101,6 +101,12 @@ export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance, cl
   const playStream = async () => {
     try {
       const isPlaylist = config.streamUrl.includes('playlist') || config.streamUrl.includes('list=');
+
+      if (isPlaylist && currentTrackIndex > 500) {
+        console.log(`[${config.name}] Índice ${currentTrackIndex} muito alto, reiniciando playlist do início...`);
+        currentTrackIndex = 1;
+        consecutiveErrors = 0;
+      }
       console.log(`[${config.name}] Extraindo URL da faixa via YT-DLP...`);
 
       const cookiesPath = process.env.COOKIES_PATH || './cookies.txt';
@@ -128,19 +134,21 @@ export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance, cl
       });
 
       let ytdlpStderr = '';
+      let ytdlpProducedData = false;
       ytdlpProcess.stderr!.on('data', (data: Buffer) => {
         if (ytdlpStderr.length < 10_000) ytdlpStderr += data.toString();
       });
 
       ytdlpProcess.on('close', (code: number | null) => {
-        if (code !== 0) {
+        const failed = code !== 0 || !ytdlpProducedData;
+        if (failed) {
           consecutiveErrors++;
-          if (ytdlpStderr) {
+          if (code !== 0 && ytdlpStderr) {
             const lastLine = ytdlpStderr.trim().split('\n').pop() ?? '';
             console.error(`[${config.name}] YT-DLP saiu com código ${code}: ${lastLine}`);
           }
-          if (isPlaylist && consecutiveErrors >= 5) {
-            console.log(`[${config.name}] Fim da playlist detectado. Reiniciando do início...`);
+          if (isPlaylist && consecutiveErrors >= 3) {
+            console.log(`[${config.name}] Fim da playlist detectado (${consecutiveErrors} falhas). Reiniciando do início...`);
             currentTrackIndex = 1;
             consecutiveErrors = 0;
           }
@@ -166,6 +174,7 @@ export function setupStreamPlayer(player: AudioPlayer, config: RadioInstance, cl
       ], { stdio: ['pipe', 'pipe', 'ignore'] });
 
       ytdlpProcess.stdout!.pipe(ffmpegProcess.stdin!);
+      ytdlpProcess.stdout!.once('data', () => { ytdlpProducedData = true; });
 
       ffmpegProcess.on('error', (err: any) => {
         console.error(`[${config.name}] Erro no FFmpeg:`, err.message);
